@@ -77,7 +77,7 @@ $ make menuconfig
 * `GPIO pins to set at micro-controller startup`:
 
   * USBの場合：`gpio25`
-  * CANの場合：`gpio25,gpio28`
+  * CANの場合：`gpio25,!gpio28`
 
 設定後、`q` → `Y` で保存して終了します。
 
@@ -150,7 +150,7 @@ $ ~/klippy-env/bin/python ~/klipper/scripts/canbus_query.py can0
   → モーターの配線に誤りがある可能性があります。4本の配線のうち中央2本を入れ替えて試してください。
 
 * **CANが認識されない場合**
-  → ファームウェア構成時に `gpio28` が `GPIO pins to set at micro-controller startup` に含まれていることを確認してください。
+  → ファームウェア構成時に `!gpio28` が `GPIO pins to set at micro-controller startup` に含まれていることを確認してください。
 
 
 ---
