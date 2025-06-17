@@ -1,4 +1,4 @@
-# Pico5160HV
+# Pico5160HV Rev.A
 
 ## 特徴
 
@@ -100,3 +100,7 @@ $ ~/klippy-env/bin/python ~/klipper/scripts/canbus_query.py can0
 
 3. `Pico5160HV_RevA.cfg` の `[stepper]` および `[tmc5160]` セクションを環境に応じて編集
    ※`klipper.cfg` 側と重複するセクションは `klipper.cfg` 側をコメントアウト
+
+
+## 連絡先
+不明点がある場合は作者Twitter(@HyperBSxi)までご連絡ください
