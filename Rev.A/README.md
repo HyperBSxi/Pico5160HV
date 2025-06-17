@@ -5,102 +5,156 @@
 * **MCU**: Raspberry Pi RP2350
 * **ファームウェア**: Klipperで動作確認済み
 * **電源入力**: 24V～55V 単一電源
-* **通信**: USBまたはCAN BusでKlipperホストと接続可能
-* **ファン出力**: PWM制御対応 12Vファン出力（100Vまでのサージ保護内蔵）
-* **エンドストップ**: 4つのエンドストップまたはDIAG1入力に切り替え可能
+* **通信方式**: USBまたはCAN BusでKlipperホストと接続可能
+* **ファン出力**: PWM制御対応の12Vファン出力（100Vまでのサージ保護回路内蔵）
+* **エンドストップ**: 4つのエンドストップ入力、またはTMC5160のDIAG1に切り替え可能
 * **CAN終端抵抗**: 有無を選択可能。2つのCANコネクタを搭載（中継用、電気的に接続済み）
-* **低電圧保護**: 12Vおよび3.3Vの低電圧を検知するとMCUがシャットダウン
-* **非搭載機能**: サーミスタ入力、ベッド出力、ホットエンド出力
+* **低電圧保護機能**: 12Vおよび3.3Vの電源電圧を監視し、異常があればMCUをシャットダウン
 
 ## 物理仕様
 
 * **基板サイズ**: 100mm × 100mm
 * **固定穴**: M3、穴間距離 92mm × 92mm
 
+## 初期セットアップ手順
+
+1. **電源およびUSBを接続します。**
+   初回設定時には極力24Vの電源を使用してください。ファームウェアの書き込みにはUSB接続が必要です。
+   ※適切な構成を行えば、CAN経由でkatapultを使用した書き込みも可能かもしれません（未確認）。
+
+2. **電源を投入します。**
+   MAINとMOTORの赤色LED、および12V、5V、3.3Vの緑色LEDが点灯していることを確認してください。
+
+3. **ファームウェアの書き込みを行います。**
+   「ファームウェアの書き込み手順」の項目に従ってください。書き込み後、MCUの青色LEDが点灯していることを確認してください。
+
+4. **コンフィグの構成を行います。**
+   「コンフィグの構成」の項目に従って設定してください。設定後にファームウェアをリスタートし、MCUの青色LEDおよび数秒後にREADYの青色LEDが点灯していることを確認してください。
+
+5. **モーターを接続します。**
+   一度電源を切り、MAINとMOTORの赤色LEDが完全に消灯したことを確認してから、3Dプリンタに組み込まれていないモーターを接続してください。これは、万が一の暴走によってプリンタが損傷することを防ぐためです。
+
+6. **モーターの動作確認を行います。**
+   電源を再投入し、READYの青色LEDが点灯したことを確認したうえでホーミング操作を行い、モーターが正しく回転するか確認してください。
+
+7. **問題がなければ3Dプリンタへ組み込んでください。**
+
 ---
 
-## ファームウェアのコンパイル手順
+## ファームウェアの書き込み手順
 
 ### 1. BOOTモードで起動
 
-電源投入後、USBコネクタ付近の `BOOTSEL` ボタンを押しながら `RESET` ボタンを押すことでBOOTモードに入ります。
+電源投入後、USBコネクタ近くの `BOOTSEL` ボタンを押しながら `RESET` ボタンを押すことでBOOTモードに入ります。
 
-### 2. デバイス認識の確認
+### 2. デバイスの認識を確認
 
-ターミナルで以下を実行し、「Raspberry Pi RP2350 Boot」が表示されるか確認してください：
+以下のコマンドを実行し、「Raspberry Pi RP2350 Boot」が表示されていることを確認し、USB IDをメモしてください。
 
 ```bash
 $ lsusb
 ```
 
-表示されたUSB IDを控えておきます。
-
-### 3. `make menuconfig` による構成
+### 3. menuconfigの設定
 
 ```bash
-# klipperディレクトリに移動して構成を開始
 $ make menuconfig
 ```
 
 設定内容：
 
-* `[*] Enable extra low-level configuration options` → チェックを入れる
+* `[X] Enable extra low-level configuration options` を有効化
 * `Micro-controller Architecture` → **Raspberry Pi RP2040/RP235x**
 * `Processor model` → **rp2350**
 * `Bootloader offset` → **No bootloader**
 * `Communication Interface` → **USB serial** または **CAN bus** を選択
 
-  * CAN使用時：
+  * CANを選んだ場合：
 
     * `CAN RX gpio number`: `26`
     * `CAN TX gpio number`: `27`
-    * `CAN bus speed`: 最大値は 1,000,000（1Mbps）
+    * `CAN bus speed`: 使用環境に合わせて設定（最大1,000,000）
 * `GPIO pins to set at micro-controller startup`:
 
-  * USB接続：`gpio25`
-  * CAN接続：`gpio25,gpio28`
+  * USBの場合：`gpio25`
+  * CANの場合：`gpio25,gpio28`
 
-設定後、`q` で終了 → `Y` で保存
+設定後、`q` → `Y` で保存して終了します。
 
-### 4. コンパイルと書き込み
+### 4. ファームウェアの書き込み
 
 ```bash
-$ make flash FLASH_DEVICE=[ステップ2で確認したUSB ID]
+$ make flash FLASH_DEVICE=[確認したUSB ID]
 ```
 
-### 5. Klipperでの認識確認
+### 5. 認識の確認
 
-#### USB接続の場合
+#### USB接続時
 
 ```bash
 $ ls -l /dev/serial/by-id/
 ```
 
-→ `usb-Klipper_rp2350_xxxxxxxxxxxxxxxx-if00` が表示されれば成功
+→ `usb-Klipper_rp2350_xxxxxxxxxxxxxxxx-if00` が表示されていれば成功です。
 
-#### CAN接続の場合
+#### CAN接続時
 
 ```bash
 $ ~/klippy-env/bin/python ~/klipper/scripts/canbus_query.py can0
 ```
 
-→ `Found canbus_uuid=xxxxxxxxxxxx` が表示されれば成功
-※複数デバイスがある場合、Pico5160HVの電源を一時的に切って識別してください
+→ `Found canbus_uuid=xxxxxxxxxxxx` と表示されていれば成功です。
+複数のデバイスがある場合は、Pico5160HVの電源を一時的に切って識別してください。
 
 ---
 
-## Klipperのconfig設定
+## コンフィグの構成
 
-1. `Pico5160HV_RevA.cfg` を `klipper.cfg` と同じディレクトリに配置
-2. `klipper.cfg` の末尾に以下を追記：
+1. `Pico5160HV_RevA.cfg` を `klipper.cfg` と同じディレクトリに配置してください。
+
+2. `klipper.cfg` の末尾に以下を追記してください：
 
 ```ini
 [include Pico5160HV_RevA.cfg]
 ```
 
-3. `Pico5160HV_RevA.cfg` の `[stepper]` および `[tmc5160]` セクションを環境に応じて編集
-   ※`klipper.cfg` 側と重複するセクションは `klipper.cfg` 側をコメントアウト
+3. `Pico5160HV_RevA.cfg` の `[stepper]` および `[tmc5160]` セクションを、ご使用の環境に合わせて編集してください。
+   `klipper.cfg` 側と重複するセクションがある場合は、そちらをコメントアウトしてください。
 
+---
+
+## トラブルシュート
+
+* **MAINの赤色LEDが点灯しない場合**
+  → 電源の接続に誤りがあるか、ブレードヒューズが切れている可能性があります。
+
+* **MOTORの赤色LEDが点灯しない場合**
+  → FANコネクタ左の白い温度ヒューズが切れている可能性があります。交換はできませんので、修理をご依頼ください。
+
+* **12V / 5V / 3.3V のいずれかの緑色LEDが点灯しない場合**
+  → 配線のショートや本体の過熱が原因の可能性があります。エアフロー不足にも注意してください。
+
+* **MCUの青色LEDが点灯しない場合**
+  → ファームウェアの書き込み失敗、ヒューズ切れによる電圧低下、またはRP2350の過熱などでMCUがシャットダウンしている可能性があります。
+
+* **READYの青色LEDが点灯しない場合**
+  → コンフィグの設定に誤りがある可能性があります。再確認してください。
+
+* **menuconfigでrp2350が選べない場合**
+　→ Klipperのバージョンが古い可能性があります。
+
+* **モーターが動作しない場合**
+  → READYのLEDが点灯しているか確認してください。点灯していればモーターの配線を再確認してください。
+
+* **モーターが振動するが回転しない場合**
+  → モーターの配線に誤りがある可能性があります。4本の配線のうち中央2本を入れ替えて試してください。
+
+* **CANが認識されない場合**
+  → ファームウェア構成時に `gpio28` が `GPIO pins to set at micro-controller startup` に含まれていることを確認してください。
+
+
+---
 
 ## 連絡先
-不明点がある場合は作者Twitter(@HyperBSxi)までご連絡ください
+
+不明点がある場合は、作者Twitter [@HyperBSxi](https://twitter.com/HyperBSxi) までご連絡ください。
