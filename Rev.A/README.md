@@ -77,8 +77,8 @@ $ make menuconfig
 
   * CANを選んだ場合：
 
-    * `CAN RX gpio number`: `26`
-    * `CAN TX gpio number`: `27`
+    * `CAN RX gpio number`: `27`
+    * `CAN TX gpio number`: `26`
     * `CAN bus speed`: 使用環境に合わせて設定（最大1,000,000）
 * `GPIO pins to set at micro-controller startup`:
 
