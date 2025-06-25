@@ -82,8 +82,8 @@ $ make menuconfig
     * `CAN bus speed`: 使用環境に合わせて設定（最大1,000,000）
 * `GPIO pins to set at micro-controller startup`:
 
-  * USBの場合：`gpio25`
-  * CANの場合：`gpio25,!gpio28`
+  * USBの場合：`!gpio1,gpio25`
+  * CANの場合：`!gpio1,gpio25,!gpio28`
 
 設定後、`q` → `Y` で保存して終了します。
 
